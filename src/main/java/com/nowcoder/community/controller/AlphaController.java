@@ -1,9 +1,12 @@
 package com.nowcoder.community.controller;
 
 import com.nowcoder.community.service.AlphaService;
+import org.apache.coyote.Request;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
@@ -70,7 +73,21 @@ public class AlphaController {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
     }
+
+
+    //get request(default)
+    // /students?current= &limit=
+     @RequestMapping(path = "/students",method = RequestMethod.GET)
+     @ResponseBody
+     //usually, it can match param,but if there isn't pass the param ,we should handle it use annotation
+     public String getStudents(
+             //required,是可以为空，默认值是1
+             @RequestParam(name = "current",required = false,defaultValue = "1") int current,
+             @RequestParam(name = "limit",required = false,defaultValue = "10") int limit){
+         System.out.println(current);
+         System.out.println(limit);
+         return "some students";
+     }
+
 }
