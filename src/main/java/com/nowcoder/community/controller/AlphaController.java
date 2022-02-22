@@ -4,13 +4,11 @@ import com.nowcoder.community.service.AlphaService;
 import org.apache.coyote.Request;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.websocket.server.PathParam;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Enumeration;
@@ -76,7 +74,8 @@ public class AlphaController {
     }
 
 
-    //get request(default)
+     //get request(default)
+    //1.first pass value way
     // /students?current= &limit=
      @RequestMapping(path = "/students",method = RequestMethod.GET)
      @ResponseBody
@@ -89,5 +88,13 @@ public class AlphaController {
          System.out.println(limit);
          return "some students";
      }
-
+    //2. second way
+    // /student/123
+    @RequestMapping(path = "/student/{id}",method = RequestMethod.GET)
+    @ResponseBody
+    //@PathVariable:Variable from path
+    public String getAStudent(@PathVariable("id") int id){
+        System.out.println(id);
+        return "a student";
+    }
 }
