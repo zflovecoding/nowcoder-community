@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.websocket.server.PathParam;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Enumeration;
+import java.util.*;
 
 @Controller
 @RequestMapping("/alpha")
@@ -126,7 +126,36 @@ public class AlphaController {
     public String getSchool(Model model){
         model.addAttribute("name","HIT");
         model.addAttribute("age",120);
-
         return "/demo/view";
     }
+
+    //response JSON data(asynchronous request)
+    @RequestMapping(path = "/emp",method = RequestMethod.GET)
+    @ResponseBody
+    public Map<String,Object> getEmp(){
+        Map<String,Object> hm = new HashMap<>();
+        hm.put("name","张三");
+        hm.put("age",30);
+        hm.put("salary",8000.00);
+        return hm;
+
+    }
+    @RequestMapping(path = "/emps",method = RequestMethod.GET)
+    @ResponseBody
+    public List<Map<String,Object>> getEmps(){
+        List<Map<String,Object>> list = new ArrayList<>();
+        Map<String,Object> hm = new HashMap<>();
+        hm.put("name","张三");
+        hm.put("age",30);
+        hm.put("salary",8000.00);
+        list.add(hm);
+        hm = new HashMap<>();
+        hm.put("name","李四");
+        hm.put("age",50);
+        hm.put("salary",198000.00);
+        list.add(hm);
+        return list;
+
+    }
+
 }
