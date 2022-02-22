@@ -97,4 +97,13 @@ public class AlphaController {
         System.out.println(id);
         return "a student";
     }
+
+    //post request
+    @RequestMapping(path = "/student",method = RequestMethod.POST)
+    @ResponseBody
+    public String saveStudent(String name,int age){
+        System.out.println(name);
+        System.out.println(age);
+        return "save success";
+    }
 }
