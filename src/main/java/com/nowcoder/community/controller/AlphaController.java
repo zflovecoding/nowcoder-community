@@ -4,7 +4,9 @@ import com.nowcoder.community.service.AlphaService;
 import org.apache.coyote.Request;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -105,5 +107,26 @@ public class AlphaController {
         System.out.println(name);
         System.out.println(age);
         return "save success";
+    }
+
+    //response data
+    @RequestMapping(path = "/teacher",method = RequestMethod.GET)
+    public ModelAndView getTeacher(){
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.addObject("name","Bob");
+        modelAndView.addObject("age",30);
+        //this path should be add in templates
+        modelAndView.setViewName("/demo/view");
+        return modelAndView;
+    }
+    //another easier way
+    @RequestMapping(path = "/school",method = RequestMethod.GET)
+    //DispatcherServlet holds the reference of model ,so it will initialize the Model when call getSchool Method
+    //return value type is String ,then return view path
+    public String getSchool(Model model){
+        model.addAttribute("name","HIT");
+        model.addAttribute("age",120);
+
+        return "/demo/view";
     }
 }
