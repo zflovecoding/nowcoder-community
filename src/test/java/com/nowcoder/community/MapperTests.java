@@ -64,11 +64,11 @@ public class MapperTests {
     private DiscussPostMapper discussPostMapper;
     @Test
     public void testSelectDiscussPost(){
-        List<DiscussPost> discussPosts = discussPostMapper.selectDiscussPosts(0, 0, 10);
+        List<DiscussPost> discussPosts = discussPostMapper.selectDiscussPosts(149, 0, 10);
         for (DiscussPost discussPost : discussPosts) {
             System.out.println(discussPost);
         }
-        System.out.println(discussPostMapper.selectDiscussPostRows(0));
+        System.out.println(discussPostMapper.selectDiscussPostRows(149));
 
     }
 

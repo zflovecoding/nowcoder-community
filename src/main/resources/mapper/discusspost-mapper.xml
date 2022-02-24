@@ -21,7 +21,7 @@
         from discuss_post
         where status != 2
         <if test="userId!=0">
-            and userId = #{userId}
+            and user_id = #{userId}
         </if>
 
     </select>
