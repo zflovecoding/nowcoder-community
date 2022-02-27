@@ -19,8 +19,6 @@ import java.util.Map;
 @Controller
 public class HomeController {
 
-
-
     @Autowired
     private DiscussPostService discussPostService;
 
@@ -33,7 +31,6 @@ public class HomeController {
         // 所以,在thymeleaf中可以直接访问Page对象中的数据.
         page.setRows(discussPostService.selectDiscussPostRows(0));//home page,so pass 0 in userID
         page.setPath("/index");
-
 
         List<DiscussPost> list = discussPostService.selectDiscussPosts(0, page.getOffset(), page.getLimit());
         List<Map<String,Object>> discussPosts = new ArrayList<>();
@@ -49,7 +46,7 @@ public class HomeController {
         model.addAttribute("discussPosts",discussPosts);
         //model.addAttribute("page",page);可以不用加入model,因为此处SpringMVC可以自动实例化page
         return "/index";
-    }
+}
 
 
 
