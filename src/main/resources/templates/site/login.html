@@ -91,8 +91,8 @@
 							</div>
 						</div>
 						<div class="col-sm-4">
-							<img th:src="@{/img/captcha.png}" style="width:100px;height:40px;" class="mr-2"/>
-							<a href="javascript:;" class="font-size-12 align-bottom">刷新验证码</a>
+							<img th:src="@{/kaptcha}" id="kaptcha" style="width:100px;height:40px;" class="mr-2"/>
+							<a href="javascript:refresh_kaptcha();" class="font-size-12 align-bottom">刷新验证码</a>
 						</div>
 					</div>				
 					<div class="form-group row mt-4">
@@ -179,5 +179,19 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" crossorigin="anonymous"></script>
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" crossorigin="anonymous"></script>
 	<script th:src="@{/js/global.js}"></script>
+	<!--不是使用原生js写的，而是基于jQuery ，目的就是点击“刷新验证码”时改变路径，刷新图片，要引用改变前面的验证码图片，所以要给前面加一个id-->
+	<script>
+		function refresh_kaptcha(){
+			//此处本来写的是"/community/kaptcha",但是这样写存在两个问题
+			//1.万一/community路径修改了，会导致需要直接改代码，不合适，所以做好做一个配置，global.js是全局的配置，哪里都引用了
+			//2.刷新访问路径如果被浏览器觉察是同一路径（上文中代码@{kaptcha}中@{}就相当于补充了一个/community）请求，会不加载
+			//所以请求增加了一个没用的参数
+			var path = CONTEXT_PATH + "/kaptcha?p"+Math.random();
+			//定义好了path下面就是通过id得到对象改变src属性
+			//jQuery的语法attribute（属性）
+			$("#kaptcha").attr("src",path);
+		}
+
+	</script>
 </body>
 </html>

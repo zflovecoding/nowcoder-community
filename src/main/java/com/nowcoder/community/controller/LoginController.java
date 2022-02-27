@@ -1,8 +1,12 @@
 package com.nowcoder.community.controller;
 
+import com.google.code.kaptcha.Producer;
+import com.nowcoder.community.config.KaptchaConfig;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.util.CommunityConstant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -10,14 +14,22 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import javax.imageio.ImageIO;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.Map;
 
 @Controller
 public class LoginController implements CommunityConstant {
-
+    private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private Producer kaptcha;
 
     //the funtion which is when user clicked "注册" in home page,we should direct to /register page
     @RequestMapping(path="/register",method = RequestMethod.GET)
@@ -70,6 +82,35 @@ public class LoginController implements CommunityConstant {
             model.addAttribute("target", "/index");
         }
         return "/site/operate-result";
+
+    }
+
+    //verification code method
+    //return a image to the page
+    @RequestMapping(path="/kaptcha",method = RequestMethod.GET)
+    //输出图片到浏览器需要使用response，验证码是一个敏感文件，存在Cookie会有敏感信息的安全问题
+    //所以存储到session里，之后会使用redis重构
+
+    public void getKaptcha(HttpServletResponse response, HttpSession session){
+        //生成验证码，用Spring管理的容器注入配置
+        //首先设置文本，然后把文本传入，创建验证码Image
+        String text = kaptcha.createText();
+        BufferedImage image = kaptcha.createImage(text);
+        //将文本验证码存入session
+        session.setAttribute("kaptcha",text);
+        //将图片直接输出到浏览器
+        //首先设置response返回内容的类型
+        response.setContentType("image.png");
+        try {
+            ServletOutputStream os = response.getOutputStream();
+            //输出图片的工具
+            //三个参数：1.要输出的图片 2.格式 3.使用的流
+            ImageIO.write(image,"png",os);
+            //response是由SpringMVC管理的，不需要自己手动关闭os流
+        } catch (IOException e) {
+            //出现异常，输出日志
+            logger.error("响应验证码失败:"+e.getMessage());
+        }
 
     }
 
