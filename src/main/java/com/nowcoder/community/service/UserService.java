@@ -2,6 +2,7 @@ package com.nowcoder.community.service;
 
 import com.nowcoder.community.dao.UserMapper;
 import com.nowcoder.community.entity.User;
+import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.MailClient;
 import org.apache.commons.lang3.StringUtils;
@@ -17,7 +18,7 @@ import java.util.Map;
 import java.util.Random;
 
 @Service
-public class UserService {
+public class UserService implements CommunityConstant {
     @Autowired
     private UserMapper userMapper;
 
@@ -106,5 +107,25 @@ public class UserService {
         return map;
         //此时Service层已经完成，去开发控制器Controller
     }
+
+    //activate by email method
+    //http://localhost:15213/community/activation/101/code
+    public int activate(int userId,String code){
+        User user = userMapper.selectById(userId);
+        //如果已经是正式用户，那就是重复激活
+        if(user.getStatus()==1){
+            return ACTIVATION_REPEAT;
+        }else if(user.getActivationCode().equals(code)){
+            //激活没问题,status=1是正式用户
+            //不能只user.setStatus,这是要更新数据库的操作，需要使用DA层，也就是使用UserMapper
+            userMapper.updateStatus(userId,1);
+            return ACTIVATION_SUCCESS;
+        }else {
+            //activateCode is incorrect
+            return ACTIVATION_FAILED;
+        }
+    }
+
+
 
 }
