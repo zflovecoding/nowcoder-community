@@ -1,6 +1,8 @@
 package com.nowcoder.community.service;
 
+import com.nowcoder.community.dao.LoginTicketMapper;
 import com.nowcoder.community.dao.UserMapper;
+import com.nowcoder.community.entity.LoginTicket;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
@@ -34,6 +36,8 @@ public class UserService implements CommunityConstant {
     @Value("${server.servlet.context-path}")
     private String contextPath;
 
+    @Autowired
+    private LoginTicketMapper loginTicketMapper;
 
     //due to DiscussPost , we should get user by userId
     public User getUserByID(int userID){
@@ -126,6 +130,68 @@ public class UserService implements CommunityConstant {
         }
     }
 
+    //so we now in service layer ,what should we do ?
+    //call the dao layer , to finish service develop
+    //we want to implement the login function
+    //NOTICE:answer is,and login is a user's action,so we write it here in userService
+    //实现业务层-->is used by controller layer
+    //包括对用户名/密码的判断，验证是否已经存在该user，
+    //如果存在，需要返回一个唯一的ticket。
+
+
+
+    /**
+     * @param username just username
+     * @param password these params were from the view layer
+     * @param expiredSeconds hope to pass how many seconds the credentials will expire
+     * @return return map type can record many kinds of messages
+     */
+    public Map<String,Object> login(String username,String password,int expiredSeconds){
+        //don't know what to do ,let's init the map
+        Map<String,Object> map = new HashMap<>();
+        // 空值处理
+        if(StringUtils.isBlank(username)){
+            map.put("usernameMsg","账号不能为空");
+            return map;
+        }
+        if(StringUtils.isBlank(password)){
+            map.put("passwordMsg","密码不能为空");
+            return map;
+        }
+        // 验证账号
+        User user = userMapper.selectByName(username);
+        if(user ==null){
+            map.put("usernameMsg","该用户不存在，请重新注册");
+            return map;
+        }
+        //验证密码
+        //犯错记录：数据库中存的密码是加密后的，不能直接拿明文比较,而且有salt
+        if(CommunityUtil.md5(password+user.getSalt()).equals(user.getPassword())){
+            map.put("passwordMsg","密码错误，请重新输入");
+            return map;
+        }
+        //第一次忘记了：验证账号状态
+        //status 0-未激活，1-已激活
+        if(user.getStatus()==0){
+            //尚未激活的账号不可以登录
+            map.put("usernameMsg","该账号未激活，请激活后再登录");
+            return map;
+        }
+        //验证也没有问题，可以登录了
+        //设置一下ticket的其他值
+        //生成登陆凭证
+        LoginTicket loginTicket = new LoginTicket();
+        loginTicket.setTicket(CommunityUtil.generateUUid());
+        loginTicket.setUserId(user.getId());
+        loginTicket.setStatus(0);//这里的status不是user表的，是login_ticket的，0-有效，1-无效
+        loginTicket.setExpired(new Date(System.currentTimeMillis()+expiredSeconds*1000));//设置过期时间
+        loginTicketMapper.insertLoginTicket(loginTicket);//生成凭证并插入表中
+        //凭证要发给客户端，所以最后返回的结果里，要把凭证放进map里
+        map.put("ticket",loginTicket.getTicket());
+        return map;
+        //接下来就是表现层的故事了，接收到三个值，传回来，交给UserService处理
+
+    }
 
 
 }
