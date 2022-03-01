@@ -1,10 +1,12 @@
 package com.nowcoder.community.entity;
 
+
 import java.util.Date;
 
+//login_ticket entity class
 public class LoginTicket {
     private int id;
-    private int user_id;
+    private int userId;
     private String ticket;
     private int status;
     private Date expired;
@@ -17,12 +19,12 @@ public class LoginTicket {
         this.id = id;
     }
 
-    public int getUser_id() {
-        return user_id;
+    public int getUserId() {
+        return userId;
     }
 
-    public void setUser_id(int user_id) {
-        this.user_id = user_id;
+    public void setUserId(int userId) {
+        this.userId = userId;
     }
 
     public String getTicket() {
@@ -50,10 +52,10 @@ public class LoginTicket {
     }
 
     @Override
-    public String  toString() {
+    public String toString() {
         return "LoginTicket{" +
                 "id=" + id +
-                ", user_id=" + user_id +
+                ", userId=" + userId +
                 ", ticket='" + ticket + '\'' +
                 ", status=" + status +
                 ", expired=" + expired +
