@@ -143,10 +143,11 @@ public class UserService implements CommunityConstant {
     /**
      * @param username just username
      * @param password these params were from the view layer
-     * @param expiredSeconds hope to pass how many seconds the credentials will expire
+     * @param expiredSeconds hope to pass how many seconds the credentials will expire,here change it's type from int to long
+     *                       because uses int it will over flow
      * @return return map type can record many kinds of messages
      */
-    public Map<String,Object> login(String username,String password,int expiredSeconds){
+    public Map<String,Object> login(String username,String password,long expiredSeconds){
         //don't know what to do ,let's init the map
         Map<String,Object> map = new HashMap<>();
         // 空值处理

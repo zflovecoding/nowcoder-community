@@ -144,14 +144,14 @@ public class LoginController implements CommunityConstant {
         }
         //验证账号和密码
         //定义两个常量比较方便
-        int expiredSeconds = rememberMe?REMEMBER_ME_EXPIRED_SECONDS:DEFAULT_EXPIRED_SECONDS;
+        long expiredSeconds = rememberMe?REMEMBER_ME_EXPIRED_SECONDS:DEFAULT_EXPIRED_SECONDS;
         Map<String, Object> loginMap = userService.login(username, password, expiredSeconds);
         //根据是否有ticket判断成功还是失败
         if(loginMap.containsKey("ticket")){
             //成功:把凭证通过cookie发送到客户端
             Cookie cookie = new Cookie("ticket",loginMap.get("ticket").toString());
             cookie.setPath(contextPath);//cookie都要设置访问路径，此处设置成动态的全项可访问
-            cookie.setMaxAge(expiredSeconds);//设置cookie过期时间
+            cookie.setMaxAge((int)expiredSeconds);//设置cookie过期时间
             response.addCookie(cookie);//使用response发生送到客户端
             //返回重定向到首页
             return "redirect:/index";

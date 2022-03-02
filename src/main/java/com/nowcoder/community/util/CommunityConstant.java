@@ -8,7 +8,7 @@ public interface CommunityConstant {
     //activate failed
     int ACTIVATION_FAILED = 2;
     //Default login credential timeout
-    int DEFAULT_EXPIRED_SECONDS = 3600 * 12;
+    long  DEFAULT_EXPIRED_SECONDS = 3600 * 12;
     //remember me status credential timeout
-    int REMEMBER_ME_EXPIRED_SECONDS = 3600 * 24 * 100;
+    long  REMEMBER_ME_EXPIRED_SECONDS = 3600 * 24 * 100;
 }
