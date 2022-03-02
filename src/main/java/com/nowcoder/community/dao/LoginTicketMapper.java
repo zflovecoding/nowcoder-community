@@ -15,6 +15,8 @@ public interface LoginTicketMapper {
     @Insert({"insert into login_ticket(user_id,ticket,status,expired) ",
             "values(#{userId},#{ticket},#{status},#{expired})"})
     //set the id auto increment
+    //配置文件中的mybatis.configuration.useGeneratedKeys=true
+    //对注解形式的SQL是不生效的
     @Options(useGeneratedKeys = true,keyProperty = "id")
     int insertLoginTicket(LoginTicket loginTicket);
     //select by ticket
