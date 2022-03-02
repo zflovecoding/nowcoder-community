@@ -5,9 +5,11 @@ import com.nowcoder.community.config.KaptchaConfig;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.util.CommunityConstant;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.imageio.ImageIO;
 import javax.servlet.ServletOutputStream;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.awt.image.BufferedImage;
@@ -31,13 +34,16 @@ public class LoginController implements CommunityConstant {
     @Autowired
     private Producer kaptcha;
 
+    @Value("${server.servlet.context-path}")
+    private String contextPath;
+
     //the funtion which is when user clicked "注册" in home page,we should direct to /register page
     @RequestMapping(path="/register",method = RequestMethod.GET)
     public String accessRegisterPage(){
         return "/site/register";
     }
     //get the login page method
-    @RequestMapping("/login")
+    @RequestMapping(path = "/login",method = RequestMethod.GET)
     public String accessLoginPage(){
         return "/site/login";
     }
@@ -87,10 +93,9 @@ public class LoginController implements CommunityConstant {
 
     //verification code method
     //return a image to the page
-    @RequestMapping(path="/kaptcha",method = RequestMethod.GET)
     //输出图片到浏览器需要使用response，验证码是一个敏感文件，存在Cookie会有敏感信息的安全问题
     //所以存储到session里，之后会使用redis重构
-
+    @RequestMapping(path="/kaptcha",method = RequestMethod.GET)
     public void getKaptcha(HttpServletResponse response, HttpSession session){
         //生成验证码，用Spring管理的容器注入配置
         //首先设置文本，然后把文本传入，创建验证码Image
@@ -113,5 +118,61 @@ public class LoginController implements CommunityConstant {
         }
 
     }
+
+    /**
+     * @param username  用户名
+     * @param password 密码
+     * @param code 验证码
+     * @param rememberMe 是否勾选记住我，决定了凭证的过期时间·长短
+     * @param model model封装保存
+     * @param session 之前用session记录保存的验证码，此处做一个校验
+     * @param response 返回的ticket要存到cookie里，需要使用response
+     * @return 返回路径
+     */
+    //上面也有一个请求方法Request Mapping是”/login“,是可以重复的，只要请求方法不同
+    @RequestMapping(path = "/login", method = RequestMethod.POST)
+    public String login(String username, String password, String code, boolean rememberMe,
+                        Model model, HttpSession session, HttpServletResponse response) {
+        //首先判断验证码
+        //先拿到之前保存的验证码
+        String kaptcha = (String)session.getAttribute("kaptcha");
+        //判断空值并忽略大小写比较，如果有任何不满足则验证码不对，依旧返回登陆页面
+        if(StringUtils.isBlank(kaptcha) || StringUtils.isBlank(code) || !kaptcha.equalsIgnoreCase(code)){
+            //给页面返回的提示放在model里
+            model.addAttribute("codeMsg","验证码不正确");
+            return "/site/login";
+        }
+        //验证账号和密码
+        //定义两个常量比较方便
+        int expiredSeconds = rememberMe?REMEMBER_ME_EXPIRED_SECONDS:DEFAULT_EXPIRED_SECONDS;
+        Map<String, Object> loginMap = userService.login(username, password, expiredSeconds);
+        //根据是否有ticket判断成功还是失败
+        if(loginMap.containsKey("ticket")){
+            //成功:把凭证通过cookie发送到客户端
+            Cookie cookie = new Cookie("ticket",loginMap.get("ticket").toString());
+            cookie.setPath(contextPath);//cookie都要设置访问路径，此处设置成动态的全项可访问
+            cookie.setMaxAge(expiredSeconds);//设置cookie过期时间
+            response.addCookie(cookie);//使用response发生送到客户端
+            //返回重定向到首页
+            return "redirect:/index";
+
+        }else{
+            //失败
+            model.addAttribute("usernameMsg", loginMap.get("usernameMsg"));
+            model.addAttribute("passwordMsg", loginMap.get("passwordMsg"));
+
+            return "/site/login";
+        }
+
+
+    }
+
+
+
+
+
+
+
+
 
 }

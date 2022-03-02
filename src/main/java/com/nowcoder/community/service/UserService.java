@@ -166,7 +166,7 @@ public class UserService implements CommunityConstant {
         }
         //验证密码
         //犯错记录：数据库中存的密码是加密后的，不能直接拿明文比较,而且有salt
-        if(CommunityUtil.md5(password+user.getSalt()).equals(user.getPassword())){
+        if(!CommunityUtil.md5(password+user.getSalt()).equals(user.getPassword())){
             map.put("passwordMsg","密码错误，请重新输入");
             return map;
         }
