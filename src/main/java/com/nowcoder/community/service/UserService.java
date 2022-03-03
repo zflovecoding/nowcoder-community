@@ -14,10 +14,10 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpSessionContext;
+import java.util.*;
 
 @Service
 public class UserService implements CommunityConstant {
@@ -196,6 +196,48 @@ public class UserService implements CommunityConstant {
         //是不是这个1代表的失效也放到常量接口里最好
         loginTicketMapper.updateStatus(ticket,1);
     }
+
+
+    /**
+     * @param email 用户自己的注册邮箱
+     * @param verifyCode 发到邮箱的验证码
+     * @param newPassword 设置的新密码
+     * @return
+     */
+    //第一个自己添加的功能：忘记密码
+//    public Map<String,Object> forgetPwd(String email,String verifyCode,String newPassword){
+//        Map<String,Object> map = new HashMap<>();
+//        //校验邮箱，不可以是未注册邮箱
+//        User user = userMapper.selectByEmail(email);
+//        if(user==null){
+//            map.put("emailMsg","该邮箱未被注册,请注册");
+//            return map;
+//        }
+//        //如果是已经注册的邮箱，那么发一封邮件给他，包含验证码，这个验证码需要保存下来校验使用
+//        //构建一封邮件，我认为包含验证码的text文件即可，但是HTML设置样式更现代
+//        //发送邮件的方式：先初始化context，设置HTML模板的值
+//        Context context = new Context();
+//        //传递值给模板setVariable
+//        context.setVariable("email",email);
+//        String generatedVerifyCode = CommunityUtil.generateUUid().substring(0,6);
+//        //session.setAttribute("verifyCode",generatedVerifyCode);
+//        context.setVariable("verifyCode",generatedVerifyCode);
+//        //通过模板引擎，将值拼接到模板中，并且生成html内容
+//        String content = templateEngine.process("/mail/forget", context);
+//        //之后调用写好的sendMail()发送文件
+//        mailClient.sendMail(email,"修改密码",content);
+//        //之后是检验验证码,这个验证码是生成了发到邮箱里的,但是本地应该也要保存的
+//        if(!generatedVerifyCode.equals(verifyCode)){
+//            map.put("codeMsg","您输入的验证码不正确");
+//            return map;
+//        }
+//        //此时说明验证码也正确，可以修改密码变成新密码
+//        //想起来一个问题，明文传送的密码到数据库里要加密保存
+//        //拿到用户的salt值用来拼接密码，以免下次用户无法登录
+//        String salt = user.getSalt();
+//        userMapper.updatePassword(user.getId(),CommunityUtil.md5(newPassword+salt));
+//        return map;
+//    }
 
 
 }

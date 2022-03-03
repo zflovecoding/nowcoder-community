@@ -187,6 +187,28 @@ public class LoginController implements CommunityConstant {
         return "redirect:/login";//默认会走GET请求的login
     }
 
+    /**
+     * @param email
+     * @param verifyCode
+     * @param newPassword
+     * @param
+     * @param model
+     * @return
+     */
+    //处理忘记密码
+    @RequestMapping(path="/forget",method = RequestMethod.POST)
+    //session不需要主动创建，只要声明，SpringMVC就会自动的创建并且注入，就像HttpServletRequest,HttpServletResponse,Model一样
+    public String forgetPassword(String email,String verifyCode,String newPassword,Model model,HttpSession session){
+
+        //首先要考虑一个问题，这三个参数是怎么拿到的，post提交表单，怎么校验的验证码
+        //验证码应该使用session存储到服务端，便于校验,在产生验证码的地方，setSession
+       //String SavedVerifyCode =(String) session.getAttribute("verifyCode");
+//        if(SavedVerifyCode.equals(verifyCode)){
+//          
+//        }
+        return "redirect:/login";
+    }
+
 
 
 }
