@@ -43,7 +43,9 @@ public class UserService implements CommunityConstant {
     public User getUserByID(int userID) {
         return userMapper.selectById(userID);
     }
-
+    public User findUserByEmail(String email) {
+        return userMapper.selectByEmail(email);
+    }
     //写一个注册方法:返回的内容是多种信息，账号不能重复，不能为空，等等等的很多信息，所以要返回集合做好封装
     //帮助我们把传来的用户数据存到数据库里面
     //具体包括：用户查重，加密密码，发送用户激活码
@@ -198,13 +200,9 @@ public class UserService implements CommunityConstant {
     }
 
 
-    /**
-     * @param email 用户自己的注册邮箱
-     * @param verifyCode 发到邮箱的验证码
-     * @param newPassword 设置的新密码
-     * @return
-     */
+
     //第一个自己添加的功能：忘记密码
+
 //    public Map<String,Object> forgetPwd(String email,String verifyCode,String newPassword){
 //        Map<String,Object> map = new HashMap<>();
 //        //校验邮箱，不可以是未注册邮箱
@@ -222,11 +220,12 @@ public class UserService implements CommunityConstant {
 //        String generatedVerifyCode = CommunityUtil.generateUUid().substring(0,6);
 //        //session.setAttribute("verifyCode",generatedVerifyCode);
 //        context.setVariable("verifyCode",generatedVerifyCode);
-//        //通过模板引擎，将值拼接到模板中，并且生成html内容
+//        //通过模板引擎，将值拼接到模板中，并且生成html内容，这里使用的模板有问题
 //        String content = templateEngine.process("/mail/forget", context);
 //        //之后调用写好的sendMail()发送文件
 //        mailClient.sendMail(email,"修改密码",content);
 //        //之后是检验验证码,这个验证码是生成了发到邮箱里的,但是本地应该也要保存的
+          //这个逻辑不正确，应该是前面表单给回来的数据，和本地保存在session的验证码比较，这个方法不对
 //        if(!generatedVerifyCode.equals(verifyCode)){
 //            map.put("codeMsg","您输入的验证码不正确");
 //            return map;
@@ -239,5 +238,54 @@ public class UserService implements CommunityConstant {
 //        return map;
 //    }
 
+
+    //忘记密码，发邮件给客户，这是点击获取验证码的时候触发的功能，需要做的是核验邮箱和想办法保存验证码到服务器
+    public String forgetPwd(String email){
+//        HashMap<String, Object> map = new HashMap<>();
+//        User user = userMapper.selectByEmail(email);
+//        //如果这个用户的邮箱未注册
+//        if(user==null){
+//            map.put("userMsg","该邮箱尚未注册");
+//            return  map;
+//        }
+        //验证邮箱之后，生成验证码，保存，并发送邮件
+        Context context = new Context();
+        context.setVariable("email",email);
+        //生成验证码
+        String code =  CommunityUtil.generateUUid().substring(0,6);
+        context.setVariable("verifyCode",code);
+        //注意模板
+        String content = templateEngine.process("/mail/forget", context);
+        mailClient.sendMail(email,"忘记密码",content);
+        return code;
+    }
+    //重置密码
+    //这是一个涉及到修改数据库内容的操作，一定是在service层操作的
+    //重置密码提交的表单内容包含：验证码（校验），注册的邮箱（找到user，修改密码）
+    public  Map<String,Object> resetPwd(String email,String newPwd){
+        //这里要对传入的email和password做校验
+        Map<String, Object> map = new HashMap<>();
+        if(StringUtils.isBlank(email)){
+            map.put("emailMsg","邮箱不能为空");
+            return map;
+        }
+        if(StringUtils.isBlank(newPwd)){
+            map.put("passwordMsg","密码不能为空");
+            return map;
+        }
+
+        User user = userMapper.selectByEmail(email);
+        if(user==null){
+            //注意这里是emailMsg
+            map.put("emailMsg","该邮箱尚未注册");
+            return map;
+        }
+
+        userMapper.updatePassword(user.getId(),CommunityUtil.md5(newPwd+user.getSalt()));
+        //此处已经重置了，map.put("user",user)?是为什么呢--->在controller层，可以做检查，
+        // 如果map包含了user这个key，证明校验没问题，且reset成功，可以重定向去登陆了
+        map.put("user",user);
+        return map;
+    }
 
 }

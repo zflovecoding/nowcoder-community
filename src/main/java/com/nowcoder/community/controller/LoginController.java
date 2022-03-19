@@ -4,6 +4,7 @@ import com.google.code.kaptcha.Producer;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.util.CommunityConstant;
+import com.nowcoder.community.util.CommunityUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,10 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
 
 import javax.imageio.ImageIO;
 import javax.servlet.ServletOutputStream;
@@ -187,28 +185,57 @@ public class LoginController implements CommunityConstant {
         return "redirect:/login";//默认会走GET请求的login
     }
 
-    /**
-     * @param email
-     * @param verifyCode
-     * @param newPassword
-     * @param
-     * @param model
-     * @return
-     */
-    //处理忘记密码
-    @RequestMapping(path="/forget",method = RequestMethod.POST)
-    //session不需要主动创建，只要声明，SpringMVC就会自动的创建并且注入，就像HttpServletRequest,HttpServletResponse,Model一样
-    public String forgetPassword(String email,String verifyCode,String newPassword,Model model,HttpSession session){
 
-        //首先要考虑一个问题，这三个参数是怎么拿到的，post提交表单，怎么校验的验证码
-        //验证码应该使用session存储到服务端，便于校验,在产生验证码的地方，setSession
-       //String SavedVerifyCode =(String) session.getAttribute("verifyCode");
-//        if(SavedVerifyCode.equals(verifyCode)){
-//          
-//        }
-        return "redirect:/login";
+    //忘记密码页面
+    //点击忘记密码，跳转到对应页面
+    @RequestMapping(path="/forget",method = RequestMethod.GET)
+    public String forgetPassword(){
+        return "/site/forget";
     }
+    // 获取验证码
+    // 使用@ResponseBody注解 返回Json数据
+    @RequestMapping(path = "/forget/code",method = RequestMethod.GET)
+    @ResponseBody
+    public String getVerifyCode(String email,HttpSession session){
+        if(StringUtils.isBlank(email)){
+            return CommunityUtil.getJSONString(1,"邮箱不能为空");
+        }
+        //给userService增加一个方法
+        User user = userService.findUserByEmail(email);
+        if(user==null){
+            return CommunityUtil.getJSONString(1,"邮箱尚未注册");
+        }
+        String verifyCode = userService.forgetPwd(email);
+        session.setAttribute("verifyCode",verifyCode);
+        session.setMaxInactiveInterval(300);
+        return CommunityUtil.getJSONString(0);
+    }
+    //重置密码
+    @RequestMapping(path = "/forget/reset",method = RequestMethod.POST)
+    public String resetPwd(Model model,HttpSession session,String email,String verifyCode,String newPwd){
+        //取出保存在session中的当时生成的验证码
+        String codeInSession =(String)session.getAttribute("verifyCode");
+        //先排除验证码的问题
+        if(StringUtils.isBlank(codeInSession)||StringUtils.isBlank(verifyCode)||!codeInSession.equalsIgnoreCase(verifyCode)){
+            //这个时候的报错信息不需要找Map了，放到model里就行
+            model.addAttribute("codeMsg","验证码错误");
+            return  "/site/forget";
+        }
+        //验证码没问题，直接调用service层，校验内容在service中完成，错误信息等存储在返回的map里
+        Map<String, Object> map = userService.resetPwd(email,newPwd);
+        //证明此时密码已经修改
+        if(map.containsKey("user")){
+            //去登陆就好
+            return "redirect:/login";
+        }
+        else {
+            //密码没修改，把报错信息封装到model里
+            model.addAttribute("emailMsg",map.get("emailMsg"));
+            model.addAttribute("passwordMsg",map.get("passwordMsg"));
+            return "/site/forget";
+        }
 
+    }
 
 
 }
