@@ -288,4 +288,8 @@ public class UserService implements CommunityConstant {
         return map;
     }
 
+    public LoginTicket findLoginTicket(String ticket){
+        return loginTicketMapper.selectByTicket(ticket);
+    }
+
 }
